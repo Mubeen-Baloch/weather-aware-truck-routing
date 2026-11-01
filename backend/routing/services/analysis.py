@@ -2,7 +2,7 @@ from datetime import timedelta, timezone
 from typing import Any
 
 from routing.providers.errors import ProviderError
-from routing.services.checkpoints import Checkpoint, checkpoint_coordinates
+from routing.services.checkpoints import Checkpoint, checkpoint_coordinates, geometry_distance_meters
 from routing.services.eta import (
     duration_distance_at_geometry_distance,
     eta_seconds_at_distance,
@@ -96,11 +96,11 @@ def _analyze_route(
 ) -> dict[str, Any]:
     geometry = route.get('geometry', {})
     coordinates = [tuple(coordinate) for coordinate in geometry.get('coordinates', [])]
-    checkpoints = checkpoint_coordinates(coordinates, checkpoint_interval_miles)
-    duration_segments = route_duration_segments(route)
     route_distance_meters = float(route['distance'])
+    checkpoints = checkpoint_coordinates(coordinates, checkpoint_interval_miles, route_distance_meters)
+    duration_segments = route_duration_segments(route)
     route_duration_seconds = float(route['duration'])
-    geometry_total_meters = checkpoints[-1].distance_meters
+    geometry_total_meters = geometry_distance_meters(coordinates)
     weather_payloads = _weather_payloads(weather_client.hourly_forecast([(coordinate[1], coordinate[0]) for coordinate in (checkpoint.coordinate for checkpoint in checkpoints)]), len(checkpoints))
 
     checkpoint_records: list[dict[str, Any]] = []
@@ -108,7 +108,7 @@ def _analyze_route(
     for checkpoint, payload in zip(checkpoints, weather_payloads):
         eta_seconds = eta_seconds_at_distance(
             duration_distance_at_geometry_distance(
-                checkpoint.distance_meters,
+                checkpoint.distance_meters / route_distance_meters * geometry_total_meters,
                 geometry_total_meters,
                 route_distance_meters,
                 duration_segments,

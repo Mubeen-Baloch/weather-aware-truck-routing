@@ -36,6 +36,31 @@ class RouteAnalysisApiTests(SimpleTestCase):
         self.assertEqual(first_route['heatmapFrames'][0]['offsetHours'], 0)
         self.assertEqual(first_route['heatmapFrames'][-1]['offsetHours'], 48)
 
+    def test_fixture_route_checkpoint_and_risk_miles_reconcile_to_provider_distance(self):
+        with override_settings(ROUTING_DATA_MODE='fixture', ROUTING_FIXTURE_SCENARIO='standard'):
+            response = self.client.post('/api/routes/analyze', REQUEST, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        for route in response.data['routes']:
+            with self.subTest(route=route['index']):
+                self.assertAlmostEqual(route['checkpoints'][-1]['distanceMeters'], route['distanceMeters'], places=6)
+                self.assertAlmostEqual(sum(checkpoint['followingSegmentMeters'] for checkpoint in route['checkpoints']), route['distanceMeters'], places=6)
+                self.assertAlmostEqual(sum(route['summary']['riskMiles'].values()) * 1609.344, route['distanceMeters'], places=6)
+                self.assertEqual(route['checkpoints'][-1]['followingSegmentMeters'], 0)
+
+    def test_provider_distance_intervals_include_a_final_partial_segment(self):
+        request = {**REQUEST, 'checkpointIntervalMiles': 50}
+        with override_settings(ROUTING_DATA_MODE='fixture', ROUTING_FIXTURE_SCENARIO='standard'):
+            response = self.client.post('/api/routes/analyze', request, format='json')
+
+        route = response.data['routes'][0]
+        segment_miles = [checkpoint['followingSegmentMeters'] / 1609.344 for checkpoint in route['checkpoints']]
+        for segment_miles_value in segment_miles[:3]:
+            self.assertAlmostEqual(segment_miles_value, 50)
+        self.assertGreater(segment_miles[-2], 0)
+        self.assertLess(segment_miles[-2], 50)
+        self.assertEqual(segment_miles[-1], 0)
+
     def test_returns_available_routes_without_fabricating_a_third_alternative(self):
         with override_settings(ROUTING_DATA_MODE='fixture', ROUTING_FIXTURE_SCENARIO='fewer_routes'):
             response = self.client.post('/api/routes/analyze', REQUEST, format='json')

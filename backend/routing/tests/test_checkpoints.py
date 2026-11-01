@@ -35,3 +35,20 @@ class CheckpointGeometryTests(SimpleTestCase):
             with self.subTest(geometry=geometry):
                 with self.assertRaises(ValueError):
                     checkpoint_coordinates(geometry, 10)
+
+    def test_places_provider_distance_intervals_and_final_partial_segment_on_geometry(self):
+        geometry = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)]
+
+        checkpoints = checkpoint_coordinates(geometry, 25, 60 * 1609.344)
+
+        for actual, expected in zip(
+            [checkpoint.distance_meters / 1609.344 for checkpoint in checkpoints],
+            [0, 25, 50, 60],
+        ):
+            self.assertAlmostEqual(actual, expected)
+        for actual, expected in zip(
+            [checkpoint.following_segment_meters / 1609.344 for checkpoint in checkpoints],
+            [25, 25, 10, 0],
+        ):
+            self.assertAlmostEqual(actual, expected)
+        self.assertEqual(checkpoints[-1].following_segment_meters, 0)
