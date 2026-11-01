@@ -39,7 +39,8 @@ Open the Vite URL (normally `http://127.0.0.1:5173`). The page calls `GET /api/h
 
 - `backend/.env` is reserved for Django settings such as `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, and `CORS_ALLOWED_ORIGINS`.
 - `frontend/.env` sets `VITE_API_BASE_URL`; use `http://127.0.0.1:8000` for local development.
-- Backend provider mode defaults to `fixture`, which uses checked-in deterministic Mapbox/Open-Meteo-shaped responses and needs no API credentials. Set `ROUTING_DATA_MODE=live` and a `MAPBOX_ACCESS_TOKEN` only when testing live providers.
+- `frontend/.env` may also set the public `VITE_MAPBOX_ACCESS_TOKEN` used by Mapbox GL to render the interactive map. Without it, the route-analysis UI remains usable but shows a configuration placeholder instead of the map.
+- Backend provider mode defaults to `fixture`, which uses checked-in deterministic Mapbox/Open-Meteo-shaped responses and needs no API credentials. The copied `backend/.env.example` keeps this local default. To explicitly test live providers in the current PowerShell session, set `$env:ROUTING_DATA_MODE = 'live'` and provide `MAPBOX_ACCESS_TOKEN`; the explicit environment value takes precedence over `backend/.env`.
 - Live Mapbox calls use Geocoding v6 and standard driving directions. Standard driving directions are not truck-specific and must not be treated as commercial-vehicle compliance routing.
 
 Do not commit `.env` files or provider credentials. No database, migrations, or persistent models are used in this MVP.

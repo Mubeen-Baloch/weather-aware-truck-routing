@@ -30,8 +30,16 @@ def _interpolate(start: tuple[float, float], end: tuple[float, float], fraction:
     )
 
 
-def checkpoint_coordinates(coordinates: list[tuple[float, float]], interval_miles: int) -> list[Checkpoint]:
-    """Place interval checkpoints by cumulative distance along the route geometry."""
+def geometry_distance_meters(coordinates: list[tuple[float, float]]) -> float:
+    return sum(haversine_meters(start, end) for start, end in zip(coordinates, coordinates[1:]))
+
+
+def checkpoint_coordinates(
+    coordinates: list[tuple[float, float]],
+    interval_miles: int,
+    distance_domain_meters: float | None = None,
+) -> list[Checkpoint]:
+    """Place checkpoints on geometry while reporting distances in the selected domain."""
     if interval_miles not in (10, 25, 50):
         raise ValueError('Checkpoint interval must be 10, 25, or 50 miles.')
     if len(coordinates) < 2:
@@ -55,27 +63,32 @@ def checkpoint_coordinates(coordinates: list[tuple[float, float]], interval_mile
     interval_meters = interval_miles * 1609.344
     geometry_segments = [(coordinates[index], coordinates[index + 1]) for index in range(len(coordinates) - 1)]
     segment_lengths = [haversine_meters(start, end) for start, end in geometry_segments]
-    total_distance = sum(segment_lengths)
-    if total_distance <= MIN_ROUTE_DISTANCE_METERS:
+    geometry_total_meters = sum(segment_lengths)
+    if geometry_total_meters <= MIN_ROUTE_DISTANCE_METERS:
         raise ValueError('Route geometry must have a non-zero distance.')
+    if distance_domain_meters is None:
+        distance_domain_meters = geometry_total_meters
+    if not isfinite(distance_domain_meters) or distance_domain_meters <= MIN_ROUTE_DISTANCE_METERS:
+        raise ValueError('Checkpoint distance domain must be a finite non-zero distance.')
 
     targets = [0.0]
     next_distance = interval_meters
-    while next_distance < total_distance:
+    while next_distance < distance_domain_meters:
         targets.append(next_distance)
         next_distance += interval_meters
-    targets.append(total_distance)
+    targets.append(distance_domain_meters)
 
     checkpoints: list[Checkpoint] = []
     segment_index = 0
     segment_start_distance = 0.0
     for target in targets:
-        while segment_index < len(segment_lengths) - 1 and target > segment_start_distance + segment_lengths[segment_index]:
+        geometry_target = target / distance_domain_meters * geometry_total_meters
+        while segment_index < len(segment_lengths) - 1 and geometry_target > segment_start_distance + segment_lengths[segment_index]:
             segment_start_distance += segment_lengths[segment_index]
             segment_index += 1
         start, end = geometry_segments[segment_index]
         segment_length = segment_lengths[segment_index]
-        fraction = 0.0 if segment_length == 0 else (target - segment_start_distance) / segment_length
+        fraction = 0.0 if segment_length == 0 else (geometry_target - segment_start_distance) / segment_length
         checkpoints.append(Checkpoint(_interpolate(start, end, min(1.0, max(0.0, fraction))), target, 0.0))
 
     return [
