@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any
 from urllib.parse import urlencode
 
@@ -37,8 +38,11 @@ class OpenMeteoClient:
             return cached
 
         if self.mode == 'fixture':
-            fixture_name = 'hourly_incomplete.json' if self.fixture_scenario == 'missing_weather' else 'hourly_complete.json'
-            response = load_fixture('weather', fixture_name)
+            fixture_name = {
+                'missing_weather': 'hourly_incomplete.json',
+                'forecast_gap': 'hourly_forecast_gap.json',
+            }.get(self.fixture_scenario, 'hourly_complete_49h.json')
+            response = self._fixture_responses(coordinates, load_fixture('weather', fixture_name))
         elif self.mode == 'live':
             params = urlencode({
                 'latitude': ','.join(str(latitude) for latitude, _longitude in coordinates),
@@ -55,3 +59,17 @@ class OpenMeteoClient:
 
         self.cache.set(cache_key, response)
         return response
+
+    @staticmethod
+    def _fixture_responses(
+        coordinates: list[tuple[float, float]],
+        fixture: dict[str, Any] | list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        templates = fixture if isinstance(fixture, list) else [fixture]
+        responses: list[dict[str, Any]] = []
+        for index, (latitude, longitude) in enumerate(coordinates):
+            response = deepcopy(templates[index % len(templates)])
+            response['latitude'] = latitude
+            response['longitude'] = longitude
+            responses.append(response)
+        return responses

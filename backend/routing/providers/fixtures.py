@@ -6,7 +6,7 @@ from .errors import ProviderConfigurationError, ProviderError
 
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / 'fixtures'
-SUPPORTED_FIXTURE_SCENARIOS = ('standard', 'fewer_routes', 'missing_weather')
+SUPPORTED_FIXTURE_SCENARIOS = ('standard', 'fewer_routes', 'missing_weather', 'forecast_gap')
 
 
 def validate_fixture_scenario(mode: str, scenario: str) -> None:

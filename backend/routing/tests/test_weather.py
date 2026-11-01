@@ -17,7 +17,7 @@ class RecordingHttp:
 
 class OpenMeteoClientTests(SimpleTestCase):
     def test_each_supported_scenario_selects_its_expected_weather_fixture(self):
-        expected_snowfall = {'standard': True, 'fewer_routes': True, 'missing_weather': False}
+        expected_snowfall = {'standard': True, 'fewer_routes': True, 'missing_weather': False, 'forecast_gap': True}
 
         for scenario, has_snowfall in expected_snowfall.items():
             with self.subTest(scenario=scenario):
@@ -26,6 +26,20 @@ class OpenMeteoClientTests(SimpleTestCase):
 
                 self.assertEqual(response[0]['timezone'], 'UTC')
                 self.assertEqual('snowfall' in response[0]['hourly'], has_snowfall)
+
+    def test_standard_fixture_has_explicit_forty_nine_hour_coverage(self):
+        client = OpenMeteoClient('fixture', 'standard', TtlCache(60), JsonHttpClient(1))
+
+        response = client.hourly_forecast([(30.2672, -97.7431)])
+
+        self.assertEqual(len(response[0]['hourly']['time']), 49)
+
+    def test_forecast_gap_fixture_does_not_fabricate_the_missing_hour(self):
+        client = OpenMeteoClient('fixture', 'forecast_gap', TtlCache(60), JsonHttpClient(1))
+
+        response = client.hourly_forecast([(30.2672, -97.7431)])
+
+        self.assertNotIn('2026-11-02T12:00', response[0]['hourly']['time'])
 
     def test_fixture_client_rejects_unsupported_scenario_during_initialization(self):
         with self.assertRaisesRegex(ProviderConfigurationError, "Unsupported ROUTING_FIXTURE_SCENARIO 'unknown'"):
