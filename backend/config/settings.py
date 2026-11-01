@@ -27,6 +27,12 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://127.0.0.1:5173,http://localhost:5173').split(',') if origin.strip()]
 
+ROUTING_DATA_MODE = os.environ.get('ROUTING_DATA_MODE', 'fixture').lower()
+ROUTING_FIXTURE_SCENARIO = os.environ.get('ROUTING_FIXTURE_SCENARIO', 'standard').lower()
+MAPBOX_ACCESS_TOKEN = os.environ.get('MAPBOX_ACCESS_TOKEN', '')
+PROVIDER_REQUEST_TIMEOUT_SECONDS = float(os.environ.get('PROVIDER_REQUEST_TIMEOUT_SECONDS', '10'))
+PROVIDER_CACHE_TTL_SECONDS = int(os.environ.get('PROVIDER_CACHE_TTL_SECONDS', '300'))
+
 INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',

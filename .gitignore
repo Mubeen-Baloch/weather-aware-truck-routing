@@ -12,6 +12,7 @@ backend/.venv/
 backend/__pycache__/
 backend/**/*.py[cod]
 backend/.pytest_cache/
+backend/live_provider_smoke.py
 
 # Editor and operating-system files
 .vscode/

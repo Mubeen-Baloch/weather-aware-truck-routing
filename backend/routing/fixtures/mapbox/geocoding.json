@@ -1,0 +1,22 @@
+{
+  "queries": {
+    "austin, tx": {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "id": "place.fixture-austin",
+        "geometry": {"type": "Point", "coordinates": [-97.7431, 30.2672]},
+        "properties": {"feature_type": "place", "name": "Austin", "place_formatted": "Texas, United States"}
+      }]
+    },
+    "dallas, tx": {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "id": "place.fixture-dallas",
+        "geometry": {"type": "Point", "coordinates": [-96.7970, 32.7767]},
+        "properties": {"feature_type": "place", "name": "Dallas", "place_formatted": "Texas, United States"}
+      }]
+    }
+  }
+}

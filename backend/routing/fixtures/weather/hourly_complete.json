@@ -1,0 +1,26 @@
+[
+  {
+    "latitude": 30.2672,
+    "longitude": -97.7431,
+    "timezone": "UTC",
+    "hourly_units": {"time": "iso8601", "wind_speed_10m": "mph", "rain": "inch", "snowfall": "inch"},
+    "hourly": {
+      "time": ["2026-11-01T12:00", "2026-11-01T13:00", "2026-11-01T14:00"],
+      "wind_speed_10m": [12.0, 18.0, 24.0],
+      "rain": [0.0, 0.02, 0.08],
+      "snowfall": [0.0, 0.0, 0.0]
+    }
+  },
+  {
+    "latitude": 32.7767,
+    "longitude": -96.797,
+    "timezone": "UTC",
+    "hourly_units": {"time": "iso8601", "wind_speed_10m": "mph", "rain": "inch", "snowfall": "inch"},
+    "hourly": {
+      "time": ["2026-11-01T12:00", "2026-11-01T13:00", "2026-11-01T14:00"],
+      "wind_speed_10m": [16.0, 20.0, 27.0],
+      "rain": [0.0, 0.10, 0.18],
+      "snowfall": [0.0, 0.0, 0.0]
+    }
+  }
+]
