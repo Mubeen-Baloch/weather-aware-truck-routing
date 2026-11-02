@@ -4,6 +4,8 @@ from typing import Any
 
 
 DISTANCE_TOLERANCE_METERS = 0.01
+ROUTE_DISTANCE_COVERAGE_TOLERANCE_METERS = 0.05
+ROUTE_DISTANCE_COVERAGE_RELATIVE_TOLERANCE = 3e-7
 
 @dataclass(frozen=True)
 class DurationSegment:
@@ -95,7 +97,12 @@ def duration_distance_at_geometry_distance(
         if not isfinite(segment.distance_meters) or segment.distance_meters < 0:
             raise ValueError('Route segment distances must be finite and non-negative.')
         duration_total_meters += segment.distance_meters
-    if not isclose(duration_total_meters, route_distance_meters, abs_tol=DISTANCE_TOLERANCE_METERS):
+    if not isclose(
+        duration_total_meters,
+        route_distance_meters,
+        rel_tol=ROUTE_DISTANCE_COVERAGE_RELATIVE_TOLERANCE,
+        abs_tol=ROUTE_DISTANCE_COVERAGE_TOLERANCE_METERS,
+    ):
         raise ValueError('Duration segments do not cover the reported route distance.')
 
     progress = min(1.0, max(0.0, geometry_distance_meters / geometry_total_meters))

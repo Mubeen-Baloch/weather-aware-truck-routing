@@ -27,6 +27,30 @@ class HourlyWeatherMatchingTests(SimpleTestCase):
         self.assertAlmostEqual(observation.rain_inches_per_hour, 0.1, places=5)
         self.assertAlmostEqual(observation.snow_inches_per_hour, 1.0, places=4)
 
+    def test_accepts_gmt_and_open_meteo_miles_per_hour_label(self):
+        payload = self.payload()
+        payload['timezone'] = 'GMT'
+        payload['hourly_units']['wind_speed_10m'] = 'mp/h'
+        payload['hourly']['wind_speed_10m'][0] = 40
+
+        observation = hourly_observation_at_eta(payload, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
+
+        self.assertTrue(observation.available)
+        self.assertEqual(observation.timestamp_utc, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
+        self.assertEqual(observation.wind_mph, 40)
+        self.assertAlmostEqual(observation.rain_inches_per_hour, 0.1, places=5)
+        self.assertAlmostEqual(observation.snow_inches_per_hour, 1.0, places=4)
+
+    def test_accepts_existing_utc_miles_per_hour_label(self):
+        payload = self.payload()
+        payload['hourly_units']['wind_speed_10m'] = 'mph'
+        payload['hourly']['wind_speed_10m'][0] = 40
+
+        observation = hourly_observation_at_eta(payload, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
+
+        self.assertTrue(observation.available)
+        self.assertEqual(observation.wind_mph, 40)
+
     def test_marks_weather_unavailable_when_nearest_hour_is_more_than_thirty_minutes_away(self):
         observation = hourly_observation_at_eta(self.payload(), datetime(2026, 11, 1, 13, 31, tzinfo=timezone.utc))
 
@@ -55,3 +79,11 @@ class HourlyWeatherMatchingTests(SimpleTestCase):
                 payload['hourly']['rain'][0] = value
                 observation = hourly_observation_at_eta(payload, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
                 self.assertFalse(observation.available)
+
+    def test_marks_weather_unavailable_for_unsupported_wind_unit(self):
+        payload = self.payload()
+        payload['hourly_units']['wind_speed_10m'] = 'beaufort'
+
+        observation = hourly_observation_at_eta(payload, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
+
+        self.assertFalse(observation.available)

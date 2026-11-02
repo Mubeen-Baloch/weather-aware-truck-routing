@@ -83,6 +83,29 @@ class EtaTests(SimpleTestCase):
         with self.assertRaisesRegex(ValueError, 'do not cover the reported route distance'):
             duration_distance_at_geometry_distance(500, 1_000, 1_000, incomplete_segments)
 
+    def test_accepts_small_route_distance_coverage_rounding_but_rejects_larger_gap(self):
+        accepted_segments = [DurationSegment(315_354.300, 100)]
+
+        self.assertAlmostEqual(
+            duration_distance_at_geometry_distance(
+                157_677.1875,
+                315_354.375,
+                315_354.375,
+                accepted_segments,
+            ),
+            157_677.15,
+        )
+
+        rejected_segments = [DurationSegment(1_000.051, 100)]
+        with self.assertRaisesRegex(ValueError, 'do not cover the reported route distance'):
+            duration_distance_at_geometry_distance(500, 1_000, 1_000, rejected_segments)
+
+    def test_rejects_materially_incomplete_duration_data_for_a_long_route(self):
+        incomplete_segments = [DurationSegment(999_999, 100)]
+
+        with self.assertRaisesRegex(ValueError, 'do not cover the reported route distance'):
+            duration_distance_at_geometry_distance(500_000, 1_000_000, 1_000_000, incomplete_segments)
+
     def test_maps_small_geometry_representation_difference_without_relaxing_duration_coverage(self):
         segments = [DurationSegment(1_000, 100)]
 
