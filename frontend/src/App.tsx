@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { analyzeRoutes, getProviderStatus, type AnalysisResult, type Checkpoint, type ProviderStatus, type RouteRequest } from './api/routeAnalysis';
 import { CheckpointDetails } from './components/CheckpointDetails';
+import { HeatmapSlider } from './components/HeatmapSlider';
 import { RouteCards } from './components/RouteCards';
 import { RouteForm } from './components/RouteForm';
 import { RouteMap } from './components/RouteMap';
@@ -12,6 +13,7 @@ export default function App() {
   const [selectedCheckpoint, setSelectedCheckpoint] = useState<Checkpoint | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heatmapOffset, setHeatmapOffset] = useState(0);
   const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function App() {
   }, []);
 
   const submit = useCallback(async (request: RouteRequest) => {
-    setBusy(true); setError(null); setSelectedCheckpoint(null);
+    setBusy(true); setError(null); setSelectedCheckpoint(null); setHeatmapOffset(0);
     try {
       const result = await analyzeRoutes(request);
       setAnalysis(result);
@@ -45,7 +47,7 @@ export default function App() {
     {error && <p className="notice notice--error" role="alert">{error}</p>}
     {analysis && <>
       <p className={`notice ${analysis.recommendation.status === 'recommended' ? 'notice--success' : 'notice--warning'}`}>{recommendationMessage}</p>
-      <section className="results-layout"><div className="results-main"><RouteMap routes={analysis.routes} origin={analysis.origin.coordinate} destination={analysis.destination.coordinate} selectedIndex={selectedRoute} onCheckpointSelect={setSelectedCheckpoint} /><CheckpointDetails checkpoint={selectedCheckpoint} /></div><RouteCards routes={analysis.routes} selectedIndex={selectedRoute} recommendedIndex={analysis.recommendation.routeIndex} onSelect={(index) => { setSelectedRoute(index); setSelectedCheckpoint(null); }} /></section>
+      <section className="results-layout"><div className="results-main"><RouteMap routes={analysis.routes} origin={analysis.origin.coordinate} destination={analysis.destination.coordinate} selectedIndex={selectedRoute} heatmapOffset={heatmapOffset} onCheckpointSelect={setSelectedCheckpoint} />{selected && <HeatmapSlider route={selected} offsetHours={heatmapOffset} onChange={setHeatmapOffset} />}<CheckpointDetails checkpoint={selectedCheckpoint} /></div><RouteCards routes={analysis.routes} selectedIndex={selectedRoute} recommendedIndex={analysis.recommendation.routeIndex} onSelect={(index) => { setSelectedRoute(index); setSelectedCheckpoint(null); setHeatmapOffset(0); }} /></section>
       {selected && <p className="route-caption">Selected Route {selected.index + 1}: checkpoint dots are colored by ETA-matched weather risk. Select one for details.</p>}
     </>}
   </main>;

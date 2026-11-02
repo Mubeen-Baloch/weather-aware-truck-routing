@@ -21,11 +21,22 @@ export interface RouteResult {
   distanceMeters: number;
   durationSeconds: number;
   checkpoints: Checkpoint[];
+  heatmapFrames: HeatmapFrame[];
   summary: {
     eligible: boolean;
     riskMiles: Record<'low' | 'moderate' | 'high' | 'severe' | 'noTravel' | 'unavailable', number>;
     averageRisk: number | null;
   };
+}
+
+export interface HeatmapFrame {
+  offsetHours: number;
+  timeUtc: string;
+  available: boolean;
+  segments: Array<{
+    followingSegmentMeters: number;
+    risk: { available: boolean; level: RiskLevel; ordinal: number | null };
+  }>;
 }
 
 export interface AnalysisResult {
