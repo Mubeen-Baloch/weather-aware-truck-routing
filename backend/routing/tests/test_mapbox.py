@@ -27,7 +27,14 @@ class MapboxClientTests(SimpleTestCase):
         self.assertIn('annotation', directions['routes'][0]['legs'][0])
 
     def test_each_supported_scenario_selects_its_expected_route_fixture(self):
-        expected_route_counts = {'standard': 3, 'fewer_routes': 1, 'missing_weather': 3}
+        expected_route_counts = {
+            'standard': 3,
+            'fewer_routes': 1,
+            'missing_weather': 3,
+            'unsafe_weather': 3,
+            'tied_recommendations': 2,
+            'forecast_gap': 3,
+        }
 
         for scenario, expected_count in expected_route_counts.items():
             with self.subTest(scenario=scenario):

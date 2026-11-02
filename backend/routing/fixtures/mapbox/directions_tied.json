@@ -1,0 +1,17 @@
+{
+  "code": "Ok",
+  "routes": [
+    {
+      "distance": 314000,
+      "duration": 11160,
+      "geometry": {"type": "LineString", "coordinates": [[-97.7431, 30.2672], [-97.4, 31.0], [-96.7970, 32.7767]]},
+      "legs": [{"distance": 314000, "duration": 11160, "annotation": {"distance": [125000, 189000], "duration": [4440, 6720]}, "steps": [{"distance": 314000, "duration": 11160}]}]
+    },
+    {
+      "distance": 314000,
+      "duration": 11160,
+      "geometry": {"type": "LineString", "coordinates": [[-97.7431, 30.2672], [-97.4, 31.0], [-96.7970, 32.7767]]},
+      "legs": [{"distance": 314000, "duration": 11160, "annotation": {"distance": [125000, 189000], "duration": [4440, 6720]}, "steps": [{"distance": 314000, "duration": 11160}]}]
+    }
+  ]
+}
