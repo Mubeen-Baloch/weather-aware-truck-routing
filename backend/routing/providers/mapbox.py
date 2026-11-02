@@ -59,7 +59,10 @@ class MapboxClient:
             return cached
 
         if self.mode == 'fixture':
-            fixture_name = 'directions_fewer_routes.json' if self.fixture_scenario == 'fewer_routes' else 'directions_standard.json'
+            fixture_name = {
+                'fewer_routes': 'directions_fewer_routes.json',
+                'tied_recommendations': 'directions_tied.json',
+            }.get(self.fixture_scenario, 'directions_standard.json')
             response = load_fixture('mapbox', fixture_name)
         elif self.mode == 'live':
             self._require_token()

@@ -152,6 +152,18 @@ class RouteAnalysisApiTests(SimpleTestCase):
         self.assertEqual(response.data['recommendation']['status'], 'no-safe-route')
         self.assertGreater(response.data['routes'][0]['summary']['riskMiles']['noTravel'], 0)
 
+    def test_unsafe_weather_fixture_marks_routes_no_travel_without_a_recommendation(self):
+        with override_settings(ROUTING_DATA_MODE='fixture', ROUTING_FIXTURE_SCENARIO='unsafe_weather'):
+            response = self.client.post('/api/routes/analyze', REQUEST, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['recommendation']['status'], 'no-safe-route')
+        for route in response.data['routes']:
+            with self.subTest(route=route['index']):
+                self.assertFalse(route['summary']['eligible'])
+                self.assertGreater(route['summary']['riskMiles']['noTravel'], 0)
+                self.assertEqual(route['checkpoints'][0]['risk']['level'], 'no-travel')
+
     def test_route_index_breaks_a_complete_risk_and_duration_tie(self):
         class TieMapboxClient:
             def __init__(self):
@@ -181,4 +193,18 @@ class RouteAnalysisApiTests(SimpleTestCase):
         self.assertEqual(first['distanceMeters'], second['distanceMeters'])
         self.assertEqual(first['durationSeconds'], second['durationSeconds'])
         self.assertEqual(first['summary'], second['summary'])
+        self.assertEqual(response.data['recommendation']['routeIndex'], 0)
+
+    def test_tied_recommendations_fixture_uses_stable_route_index(self):
+        with override_settings(ROUTING_DATA_MODE='fixture', ROUTING_FIXTURE_SCENARIO='tied_recommendations'):
+            response = self.client.post('/api/routes/analyze', REQUEST, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['routes']), 2)
+        first, second = response.data['routes']
+        self.assertEqual(first['geometry'], second['geometry'])
+        self.assertEqual(first['distanceMeters'], second['distanceMeters'])
+        self.assertEqual(first['durationSeconds'], second['durationSeconds'])
+        self.assertEqual(first['summary'], second['summary'])
+        self.assertEqual(response.data['recommendation']['status'], 'recommended')
         self.assertEqual(response.data['recommendation']['routeIndex'], 0)

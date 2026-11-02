@@ -40,6 +40,7 @@ class OpenMeteoClient:
         if self.mode == 'fixture':
             fixture_name = {
                 'missing_weather': 'hourly_incomplete.json',
+                'unsafe_weather': 'hourly_unsafe_weather.json',
                 'forecast_gap': 'hourly_forecast_gap.json',
             }.get(self.fixture_scenario, 'hourly_complete_49h.json')
             response = self._fixture_responses(coordinates, load_fixture('weather', fixture_name))

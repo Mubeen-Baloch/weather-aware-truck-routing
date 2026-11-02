@@ -17,7 +17,14 @@ class RecordingHttp:
 
 class OpenMeteoClientTests(SimpleTestCase):
     def test_each_supported_scenario_selects_its_expected_weather_fixture(self):
-        expected_snowfall = {'standard': True, 'fewer_routes': True, 'missing_weather': False, 'forecast_gap': True}
+        expected_snowfall = {
+            'standard': True,
+            'fewer_routes': True,
+            'missing_weather': False,
+            'unsafe_weather': True,
+            'tied_recommendations': True,
+            'forecast_gap': True,
+        }
 
         for scenario, has_snowfall in expected_snowfall.items():
             with self.subTest(scenario=scenario):
@@ -40,6 +47,14 @@ class OpenMeteoClientTests(SimpleTestCase):
         response = client.hourly_forecast([(30.2672, -97.7431)])
 
         self.assertNotIn('2026-11-02T12:00', response[0]['hourly']['time'])
+
+    def test_unsafe_weather_fixture_has_explicit_no_travel_winds(self):
+        client = OpenMeteoClient('fixture', 'unsafe_weather', TtlCache(60), JsonHttpClient(1))
+
+        response = client.hourly_forecast([(30.2672, -97.7431)])
+
+        self.assertEqual(len(response[0]['hourly']['time']), 49)
+        self.assertEqual(set(response[0]['hourly']['wind_speed_10m']), {60})
 
     def test_fixture_client_rejects_unsupported_scenario_during_initialization(self):
         with self.assertRaisesRegex(ProviderConfigurationError, "Unsupported ROUTING_FIXTURE_SCENARIO 'unknown'"):
