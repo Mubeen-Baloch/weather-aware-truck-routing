@@ -5,6 +5,7 @@ from typing import Any
 
 
 MAX_FORECAST_MATCH_SECONDS = 30 * 60
+ZERO_OFFSET_TIMEZONES = ('UTC', 'GMT')
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,7 @@ def hourly_observation_at_eta(payload: dict[str, Any], eta_utc: datetime) -> Wea
     hourly = payload.get('hourly', {})
     units = payload.get('hourly_units', {})
     required = ('time', 'wind_speed_10m', 'rain', 'snowfall')
-    if eta_utc.tzinfo is None or payload.get('timezone') != 'UTC' or any(field not in hourly for field in required):
+    if eta_utc.tzinfo is None or payload.get('timezone') not in ZERO_OFFSET_TIMEZONES or any(field not in hourly for field in required):
         return WeatherObservation(False, None, None, None, None)
 
     times = hourly['time']
@@ -52,7 +53,7 @@ def hourly_observation_at_eta(payload: dict[str, Any], eta_utc: datetime) -> Wea
         return WeatherObservation(
             True,
             match_time,
-            _convert(values['wind_speed_10m'], units.get('wind_speed_10m', ''), {'mph': 1, 'km/h': 0.621371, 'm/s': 2.23694, 'kn': 1.15078}),
+            _convert(values['wind_speed_10m'], units.get('wind_speed_10m', ''), {'mph': 1, 'mp/h': 1, 'km/h': 0.621371, 'm/s': 2.23694, 'kn': 1.15078}),
             _convert(values['rain'], units.get('rain', ''), {'inch': 1, 'mm': 0.0393701}),
             _convert(values['snowfall'], units.get('snowfall', ''), {'inch': 1, 'cm': 0.393701, 'mm': 0.0393701}),
         )
